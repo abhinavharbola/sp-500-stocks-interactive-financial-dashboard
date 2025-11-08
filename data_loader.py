@@ -7,10 +7,7 @@ from datetime import datetime
 import time  # Import the time module
 
 def get_sp500_list():
-    """
-    Scrapes the Wikipedia page for the S&P 500 company list.
-    Returns a DataFrame with Symbol, Security, and GICS Sector.
-    """
+    # Scrapes the Wikipedia page for the S&P 500 company list and returns a df with Symbol, Security, and GICS Sector.
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
     headers = {'User-Agent': 'Mozilla/5.0'}
     try:
@@ -130,4 +127,5 @@ def get_fundamental_data_yfinance(symbols):
             logging.warning(f"Failed to get fundamental data for {symbol}: {e}")
 
     logging.info(f"Finished fundamental data processing. Collected {len(funda_data)} records.")
+
     return pd.DataFrame(funda_data)
