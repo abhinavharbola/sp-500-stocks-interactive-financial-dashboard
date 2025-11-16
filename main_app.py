@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import yfinance as yf
-# Matplotlib and Seaborn are no longer needed
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
@@ -116,6 +115,7 @@ selected_sectors = st.sidebar.multiselect("Select Sectors", sectors, default=sec
 
 min_cap_val = df['Market Cap ($B)'].min()
 max_cap_val = df['Market Cap ($B)'].max()
+# Handle cases where data might be empty or NaN
 if pd.isna(min_cap_val) or pd.isna(max_cap_val):
     min_cap_val, max_cap_val = 0.0, 5000.0
 else:
@@ -123,12 +123,16 @@ else:
 selected_cap = st.sidebar.slider("Market Cap ($B)", min_cap_val, max_cap_val, (min_cap_val, max_cap_val))
 
 min_pe_val = df['P/E Ratio'].min()
-max_pe_val = df['P/E Ratio'].max()
-if pd.isna(min_pe_val) or pd.isna(max_pe_val):
-    min_pe_val, max_pe_val = 0.0, 150.0
+# Handle cases where min_pe might be NaN
+if pd.isna(min_pe_val):
+    min_pe_val = 0.0
 else:
-    min_pe_val, max_pe_val = float(min_pe_val), 150.0
-selected_pe = st.sidebar.slider("P/E Ratio", min_pe_val, max_pe_val, (min_pe_val, max_pe_val))
+    min_pe_val = float(min_pe_val)
+
+# Cap the max slider value for usability, though real data may go higher
+selected_pe = st.sidebar.slider("P/E Ratio Range", min_pe_val, 150.0, (min_pe_val, 150.0))
+# Checkbox to include companies without P/E data (often unprofitable or missing)
+include_na_pe = st.sidebar.checkbox("Include companies with N/A P/E Ratio", value=True)
 
 st.sidebar.header("📈 Live Stock Chart")
 watch_ticker = st.sidebar.text_input("Enter one ticker (e.g., AAPL):")
@@ -150,11 +154,26 @@ except:
     st.sidebar.error("ETL data not found.")
 
 # --- Main Page Filtering ---
-filtered_df = df[
-    (df['GICS Sector'].isin(selected_sectors)) &
-    (df['Market Cap ($B)'].between(selected_cap[0], selected_cap[1])) &
-    (df['P/E Ratio'].fillna(999).between(selected_pe[0], selected_pe[1]))
-]
+
+# 1. Sector Filter
+sector_filter = df['GICS Sector'].isin(selected_sectors)
+
+# 2. Market Cap Filter
+cap_filter = df['Market Cap ($B)'].between(selected_cap[0], selected_cap[1])
+
+# 3. P/E Ratio Filter (Complex logic to handle N/A)
+if include_na_pe:
+    # Include stocks within range OR stocks with no P/E (NaN)
+    pe_filter = (
+        df['P/E Ratio'].between(selected_pe[0], selected_pe[1]) |
+        df['P/E Ratio'].isna()
+    )
+else:
+    # Strictly enforce range, excluding NaN
+    pe_filter = df['P/E Ratio'].between(selected_pe[0], selected_pe[1])
+
+# Apply all filters
+filtered_df = df[sector_filter & cap_filter & pe_filter]
 
 st.header(f"🏢 Displaying {len(filtered_df)} of {len(df)} Companies")
 st.dataframe(filtered_df.drop(columns=['last_fundamentals_update', 'last_performance_update']))
@@ -166,7 +185,7 @@ if compare_tickers:
     st.header(f"⚖️ YTD Performance Comparison: {', '.join(compare_tickers)}")
     plot_comparison_chart(compare_tickers)
 
-# --- MODIFICATION: Only show live chart if NOT comparing ---
+# Only show live chart if NOT comparing
 if watch_ticker and not compare_tickers:
     st.header(f"📈 Live Chart: {watch_ticker.upper()}")
     plot_stock_chart(watch_ticker.upper())
@@ -178,14 +197,20 @@ tabs = st.tabs(["Top Performers", "Sector Performance", "Correlation Analysis"])
 with tabs[0]:
     st.subheader("🏆 Top & Bottom 10 Performers (YTD)")
     col1, col2 = st.columns(2)
+    
+    # Top 10
     top_10 = filtered_df.sort_values("YTD Return (%)", ascending=False).head(10)
     col1.dataframe(top_10[['Symbol', 'Company', 'YTD Return (%)']])
+    
+    # Bottom 10
     bottom_10 = filtered_df.sort_values("YTD Return (%)", ascending=True).head(10)
     col2.dataframe(bottom_10[['Symbol', 'Company', 'YTD Return (%)']])
 
 with tabs[1]:
     st.subheader("📊 Average YTD Return by Sector")
+    # Calculate mean return per sector based on filtered data
     sector_perf = filtered_df.groupby('GICS Sector')['YTD Return (%)'].mean().sort_values(ascending=False).reset_index()
+    
     fig = px.bar(
         sector_perf, x="YTD Return (%)", y="GICS Sector", orientation='h',
         title="Average YTD Return by Sector", color="GICS Sector", template="plotly_white"
@@ -193,7 +218,6 @@ with tabs[1]:
     fig.update_layout(yaxis_title="Sector", xaxis_title="Average YTD Return (%)", showlegend=False)
     st.plotly_chart(fig, width='stretch')
 
-# --- MODIFICATION: Correlation tab now uses 'compare_tickers' ---
 with tabs[2]:
     st.subheader("Stock Correlation Analysis")
     st.markdown("This heatmap shows the correlation of daily returns between the stocks selected in the **'Stock Comparison'** sidebar menu.")
@@ -205,8 +229,13 @@ with tabs[2]:
         st.warning("Please select at least two tickers in the 'Stock Comparison' sidebar to display a correlation matrix.")
     else:
         try:
+            # Download data for correlation
             all_data = yf.download(symbols_list, period="ytd", auto_adjust=True)['Close']
+            
+            # Calculate daily percentage change
             daily_returns = all_data.pct_change().dropna()
+            
+            # Create correlation matrix
             corr_matrix = daily_returns.corr()
             
             fig_corr = px.imshow(
