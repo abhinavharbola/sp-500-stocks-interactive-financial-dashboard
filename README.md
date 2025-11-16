@@ -19,7 +19,7 @@ Built on a robust ETL pipeline for **data freshness**, powered entirely by **yfi
 
 FinDash isn’t a single script - it’s a small-scale **data product** that cleanly separates:
 - **ETL (etl.py)** - Handles data collection, transformation, and storage.
-- **App (app.py)** - Renders the dashboard UI and reads pre-computed data.
+- **App (main_app.py)** - Renders the dashboard UI and reads pre-computed data.
 
 ### ETL (`etl.py`)
 - Scrapes the **S&P 500 company list** from Wikipedia.  
@@ -27,7 +27,7 @@ FinDash isn’t a single script - it’s a small-scale **data product** that cle
 - Fetches **fundamental data** (e.g., Market Cap, P/E).  
 - Merges, cleans, and saves everything into `stocks.db`.  
 
-### App (`app.py`)
+### App (`main_app.py`)
 - Streamlit-based frontend that queries `stocks.db`.  
 - Displays company performance, metrics, and watchlists.  
 - No external API calls = instant load time 🚀  
@@ -38,7 +38,7 @@ FinDash isn’t a single script - it’s a small-scale **data product** that cle
 
 ```
 FinDash-SP500/
-├── app.py              # Streamlit dashboard (UI)
+├── main_app.py         # Streamlit dashboard (UI)
 ├── etl.py              # Data ingestion & transformation
 ├── stocks.db           # Local SQLite database (auto-generated)
 ├── requirements.txt    # Dependencies
@@ -73,7 +73,7 @@ To keep data fresh, re-run the ETL script daily or schedule it using a task sche
 
 ### 4. Launch the dashboard
 ```bash
-streamlit run app.py
+streamlit run main_app.py
 ```
 
 ---
@@ -82,17 +82,17 @@ streamlit run app.py
 
 ```bash
 # Step 1: Setup
-git clone https://github.com/your-username/FinDash-SP500.git
-cd FinDash-SP500
+git clone https://github.com/abhinavharbola/sp-500-stocks-interactive-financial-dashboard
+cd sp-500-stocks-interactive-financial-dashboard
 
-# Step 2: Install dependencies
+# Step 2: Install the dependencies
 pip install -r requirements.txt
 
 # Step 3: Build the database
 python etl.py
 
 # Step 4: Run the dashboard
-streamlit run app.py
+streamlit run main_app.py
 ```
 
 ---
@@ -126,5 +126,4 @@ If you find **FinDash** useful, please consider:
 
 
 **Author:** [Abhinav Harbola](https://github.com/abhinavharbola)
-
 
