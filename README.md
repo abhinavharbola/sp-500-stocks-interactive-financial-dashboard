@@ -7,19 +7,19 @@ Built on a robust ETL pipeline for **data freshness**, powered entirely by **yfi
 
 ## Key Features
 
-- **Blazing Fast UI** — Loads instantly using a pre-computed local SQLite database (no live API lag).  
-- **Consolidated ETL Pipeline** — Fetches performance and fundamental data for all 500+ companies daily.  
-- **Advanced Screener** — Filter companies by *Sector*, *Market Cap*, and *P/E Ratio*.  
-- **Live Watchlist** — View up-to-date yfinance charts for any ticker.  
-- **Modular Architecture** — Clean separation between ETL and UI layers for scalability.  
+- **Blazing Fast UI** - Loads instantly using a pre-computed local SQLite database (no live API lag).  
+- **Consolidated ETL Pipeline** - Fetches performance and fundamental data for all 500+ companies daily.  
+- **Advanced Screener** - Filter companies by *Sector*, *Market Cap*, and *P/E Ratio*.  
+- **Live Watchlist** - View up-to-date yfinance charts for any ticker.  
+- **Modular Architecture** - Clean separation between ETL and UI layers for scalability.  
 
 ---
 
 ## System Architecture
 
-FinDash isn’t a single script — it’s a small-scale **data product** that cleanly separates:
-- **ETL (etl.py)** — Handles data collection, transformation, and storage.
-- **App (app.py)** — Renders the dashboard UI and reads pre-computed data.
+FinDash isn’t a single script - it’s a small-scale **data product** that cleanly separates:
+- **ETL (etl.py)** - Handles data collection, transformation, and storage.
+- **App (app.py)** - Renders the dashboard UI and reads pre-computed data.
 
 ### ETL (`etl.py`)
 - Scrapes the **S&P 500 company list** from Wikipedia.  
@@ -115,7 +115,7 @@ Wikipedia  →  etl.py  →  yfinance  →  SQLite (stocks.db)  →  Streamlit A
 
 ---
 
-## ⭐ Contribute & Support
+## Contribute & Support
 
 If you find **FinDash** useful, please consider:
 - Starring the repository  
@@ -124,4 +124,6 @@ If you find **FinDash** useful, please consider:
 
 ---
 
+
 **Author:** [Abhinav Harbola](https://github.com/abhinavharbola)
+
