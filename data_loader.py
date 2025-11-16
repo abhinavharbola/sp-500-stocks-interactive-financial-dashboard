@@ -4,21 +4,46 @@ import requests
 from io import StringIO
 import logging
 from datetime import datetime
-import time  # Import the time module
+import time
 
 def get_sp500_list():
-    # Scrapes the Wikipedia page for the S&P 500 company list and returns a df with Symbol, Security, and GICS Sector.
+    """
+    Scrapes the Wikipedia page for the S&P 500 company list.
+    Finds the correct table by looking for required columns.
+    """
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
     headers = {'User-Agent': 'Mozilla/5.0'}
+    
     try:
         response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        response.raise_for_status()  # Check for HTTP errors
+        
+        # Read all tables on the page
         df_list = pd.read_html(StringIO(response.text))
-        df = df_list[0]
-        df = df[['Symbol', 'Security', 'GICS Sector']].copy()
+        
+        # Define the columns we *must* have
+        required_columns = {'Symbol', 'Security', 'GICS Sector'}
+        
+        sp500_df = None
+        for df in df_list:
+            # Check if the table's columns are a superset of our required columns
+            if required_columns.issubset(df.columns):
+                sp500_df = df
+                break  # We found the table
+        
+        # If we didn't find the table, raise an error
+        if sp500_df is None:
+            raise ValueError("Could not find S&P 500 table with required columns.")
+
+        # Now we can safely select our columns
+        df_out = sp500_df[['Symbol', 'Security', 'GICS Sector']].copy()
+        
         # Clean up symbols (e.g., 'BF.B' to 'BF-B')
-        df['Symbol'] = df['Symbol'].str.replace('.', '-', regex=False)
-        return df
+        df_out['Symbol'] = df_out['Symbol'].str.replace('.', '-', regex=False)
+        
+        logging.info(f"Successfully scraped S&P 500 list with {len(df_out)} companies.")
+        return df_out
+        
     except Exception as e:
         logging.error(f"Failed to scrape S&P 500 list: {e}")
         return pd.DataFrame()
