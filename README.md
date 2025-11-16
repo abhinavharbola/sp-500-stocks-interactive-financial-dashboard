@@ -51,8 +51,8 @@ FinDash-SP500/
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/FinDash-SP500.git
-cd FinDash-SP500
+git clone https://github.com/abhinavharbola/sp-500-stocks-interactive-financial-dashboard
+cd sp-500-stocks-interactive-financial-dashboard
 ```
 
 ### 2. Install dependencies
@@ -126,4 +126,5 @@ If you find **FinDash** useful, please consider:
 
 
 **Author:** [Abhinav Harbola](https://github.com/abhinavharbola)
+
 
